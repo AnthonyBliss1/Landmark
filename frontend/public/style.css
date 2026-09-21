@@ -1,0 +1,65 @@
+@font-face {
+  font-family: "BM-Bold";
+  src: url("BerkeleyMono-Bold.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "BM-Regular";
+  src: url("BerkeleyMono-Regular.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "BM-Oblique";
+  src: url("BerkeleyMono-Oblique.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "BM-Bold-Oblique";
+  src: url("BerkeleyMono-Bold-Oblique.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  --black: #000;
+  --surface: #0a0a0a;
+  --surface-raised: #111;
+  --white: #fff;
+  --muted: #9a9a9a;
+  --rule: #5c5c5c;
+  --rule-soft: #2f2f2f;
+  --shadow: #3d3d3d;
+  --action-green: #137752;
+  --action-green-hover: #0f6243;
+  --action-green-shadow: #24483a;
+  --destructive-red: #a51d2d;
+  --destructive-red-hover: #821c25;
+  --destructive-red-shadow: #4a272a;
+}
+
+* {
+  box-sizing: border-box;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+*:focus {
+  outline: none;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  color: var(--white);
+  background: var(--black);
+  font-family: "BM-Regular", monospace;
+  font-size: 14px;
+  overflow-x: hidden;
+}
