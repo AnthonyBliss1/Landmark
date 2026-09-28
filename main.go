@@ -2,9 +2,10 @@ package main
 
 import (
 	"embed"
-
 	"log"
 	"time"
+
+	"changeme/backend"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -28,7 +29,6 @@ func init() {
 // and starts a goroutine that emits a time-based event every second. It subsequently runs the application and
 // logs any error that might occur.
 func main() {
-
 	// Create a new Wails application by providing the necessary options.
 	// Variables 'Name' and 'Description' are for application metadata.
 	// 'Assets' configures the asset server with the 'FS' variable pointing to the frontend files.
@@ -36,9 +36,9 @@ func main() {
 	// 'Mac' options tailor the application when running an macOS.
 	app := application.New(application.Options{
 		Name:        "Landmark",
-		Description: "A demo of using raw HTML & CSS",
+		Description: "A simple GUI providing movie and show times for Landmark theaters",
 		Services: []application.Service{
-			application.NewService(&GreetService{}),
+			application.NewService(backend.InitLandmark()),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
@@ -79,7 +79,6 @@ func main() {
 
 	// Run the application. This blocks until the application has been exited.
 	err := app.Run()
-
 	// If an error occurred while running the application, log it and exit.
 	if err != nil {
 		log.Fatal(err)
