@@ -229,6 +229,9 @@ func (l *Landmark) StoreRawMovies(mr MovieResponse) error {
 		}
 	}
 
+	// always reset movies on func call
+	movies := make([]Movie, 0, len(mr))
+
 	for _, m := range mr {
 		movie := Movie{ID: m.ID, Title: m.Title, Description: m.Description, Actors: m.Casting, Director: m.Direction[0], Genres: m.Genres, Rating: m.Rating, Trailer: m.Trailer}
 
@@ -241,9 +244,12 @@ func (l *Landmark) StoreRawMovies(mr MovieResponse) error {
 			return fmt.Errorf("failed to store poster url for %s: %q", m.Title, err)
 		}
 
-		// add movie to appstate
-		l.Movies = append(l.Movies, movie)
+		// add movie to temp array
+		movies = append(movies, movie)
 	}
+
+	// set fresh movies
+	l.Movies = movies
 
 	return nil
 }
