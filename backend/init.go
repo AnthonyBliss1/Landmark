@@ -9,13 +9,14 @@ import (
 )
 
 var (
+	PosterDir string // using this in handlers package
+
 	scheduleURL string
 	moviesURL   string
 	referer     string
 	host        string
 	theaterId   string
 	timezone    string
-	posterDir   string
 	client      = &http.Client{}
 )
 

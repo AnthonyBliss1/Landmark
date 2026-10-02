@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"changeme/backend"
+	"changeme/middleware"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -41,7 +42,8 @@ func main() {
 			application.NewService(backend.InitLandmark()),
 		},
 		Assets: application.AssetOptions{
-			Handler: application.AssetFileServerFS(assets),
+			Handler:    application.AssetFileServerFS(assets),
+			Middleware: middleware.PosterMiddleWare,
 		},
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: true,

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -29,6 +30,7 @@ type Movie struct {
 	Director    string
 	Runtime     string
 	Genres      string
+	Poster      string
 	PosterPath  string
 	Rating      string
 	Trailer     Trailer
@@ -222,8 +224,8 @@ func (l *Landmark) StoreRawMovies(mr MovieResponse) error {
 	var err error
 
 	// need to make the temp poster directory if one does not exist
-	if posterDir == "" {
-		posterDir, err = os.MkdirTemp("", "Landmark-*")
+	if PosterDir == "" {
+		PosterDir, err = os.MkdirTemp("", "Landmark-*")
 		if err != nil {
 			return fmt.Errorf("failed to create temporary app dir", err)
 		}
@@ -243,6 +245,9 @@ func (l *Landmark) StoreRawMovies(mr MovieResponse) error {
 		if err != nil {
 			return fmt.Errorf("failed to store poster url for %s: %q", m.Title, err)
 		}
+
+		// frontend request path
+		movie.Poster = "/posters/" + filepath.Base(movie.PosterPath)
 
 		// add movie to temp array
 		movies = append(movies, movie)

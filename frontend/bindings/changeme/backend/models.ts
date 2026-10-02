@@ -9,6 +9,7 @@ export interface Movie {
     "Director": string;
     "Runtime": string;
     "Genres": string;
+    "Poster": string;
     "PosterPath": string;
     "Rating": string;
     "Trailer": Trailer;

@@ -36,7 +36,7 @@ func StorePosterImage(u string, title string) (string, error) {
 	cleanTitle := strings.ReplaceAll(title, " ", "_")
 	fileName := cleanTitle + imgExt
 
-	imgPath := filepath.Join(posterDir, fileName)
+	imgPath := filepath.Join(PosterDir, fileName)
 
 	req, err := http.NewRequest(http.MethodGet, u, nil)
 	if err != nil {

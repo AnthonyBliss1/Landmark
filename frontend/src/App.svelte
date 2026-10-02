@@ -4,7 +4,10 @@
   import type { Movie } from "../bindings/changeme/backend";
 
   let movies = $state<Movie[]>([]);
-  let loading = $state(false);
+  let currentMovieIndex = $state(0);
+  let currentMovie = $derived(movies[currentMovieIndex] ?? null);
+
+  let loading = $state(true);
   let error = $state("");
 
   async function getMovies() {
@@ -33,19 +36,57 @@
         [ Loading movies <span class="dots"></span> ]
       </div>
     </div>
-  {:else}
+  {:else if currentMovie}
     <div class="header">
       <div class="app-title">Landmark Movies</div>
       <div class="landmark-location">Pasadena</div>
     </div>
 
     <div class="content">
-      <div class="movie-title">Movie Title</div>
+      <div class="movie-title">{currentMovie.Title}</div>
       <div class="movie-content">
-        <div class="left-arrow">{"<-"}</div>
-        <div class="movie-image">image here...</div>
-        <div class="movie-info">movie info here...</div>
-        <div class="right-arrow">{"->"}</div>
+        <button
+          class="arrow"
+          onclick={() => {
+            if (currentMovieIndex === 0) {
+              currentMovieIndex = movies.length - 1;
+            } else {
+              currentMovieIndex--;
+            }
+          }}
+        >
+          {"<-"}
+        </button>
+        <img class="movie-image" src={currentMovie.Poster} />
+        <div class="movie-info">
+          <dl class="movie-details">
+            <dt>Director</dt>
+            <dd>{currentMovie.Director}</dd>
+            <dt>Cast</dt>
+            <dd>{currentMovie.Actors}</dd>
+            <dt>Rating</dt>
+            <dd>{currentMovie.Rating}</dd>
+            <dt>Runtime</dt>
+            <dd>{currentMovie.Runtime}</dd>
+            <dt>Description</dt>
+            <dd>{currentMovie.Description}</dd>
+          </dl>
+        </div>
+        <button
+          class="arrow"
+          onclick={() => {
+            if (currentMovieIndex === movies.length - 1) {
+              currentMovieIndex = 0;
+            } else {
+              currentMovieIndex++;
+            }
+          }}
+        >
+          {"->"}
+        </button>
+      </div>
+      <div class="movie-footer">
+        <div class="movie-index">{currentMovieIndex + 1} / {movies.length}</div>
       </div>
     </div>
   {/if}
@@ -56,7 +97,6 @@
     display: flex;
     flex-direction: column;
     padding: 2vh 2vw;
-    gap: 5vh;
     min-height: 100vh;
     min-width: 100vw;
     box-sizing: border-box;
@@ -105,6 +145,7 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    height: 5vh;
   }
 
   .landmark-location {
@@ -136,29 +177,64 @@
     display: flex;
     flex-direction: row;
     flex: 1;
-    gap: 10vw;
+    gap: 5vw;
     align-items: center;
     padding: 2vh 2vw;
     border: dashed 1px;
   }
 
+  .movie-footer {
+    display: flex;
+    justify-content: center;
+    padding-top: 2vh;
+  }
+
+  .arrow {
+    width: 35px;
+    flex-shrink: 0;
+
+    background: black;
+    font-size: 25px;
+    box-sizing: border-box;
+    pointer-events: auto;
+    cursor: pointer;
+    padding: 2px;
+    border: 1px solid transparent;
+  }
+
+  .arrow:hover {
+    border: 1px solid;
+  }
+
   .movie-info {
     display: flex;
     flex: 3;
-    border: dashed 1px;
     justify-content: center;
     align-items: center;
     align-self: stretch;
-    max-width: 40vw;
+  }
+
+  .movie-details {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+  }
+
+  .movie-details dt,
+  .movie-details dd {
+    margin: 10px;
+  }
+
+  .movie-details dt {
+    border: 1px dotted;
+    padding: 2px;
+    align-self: start;
   }
 
   .movie-image {
     display: flex;
     flex: 3;
-    border: dashed 1px;
     justify-content: center;
     align-items: center;
-    align-self: stretch;
-    max-width: 40vw;
+    max-width: 25vw;
   }
 </style>
