@@ -39,6 +39,7 @@
   {:else if currentMovie}
     <div class="header">
       <div class="app-title">Landmark Movies</div>
+      <img class="landmark-logo" src="/landmark.png" alt="landmark logo" />
       <div class="landmark-location">Pasadena</div>
     </div>
 
@@ -57,7 +58,7 @@
         >
           {"<-"}
         </button>
-        <img class="movie-image" src={currentMovie.Poster} />
+        <img class="movie-image" src={currentMovie.Poster} alt="movie poster" />
         <div class="movie-info">
           <dl class="movie-details">
             <dt>Director</dt>
@@ -96,7 +97,7 @@
   .main-container {
     display: flex;
     flex-direction: column;
-    padding: 2vh 2vw;
+    padding: 0 2vw 2vh;
     min-height: 100vh;
     min-width: 100vw;
     box-sizing: border-box;
@@ -142,15 +143,28 @@
   }
 
   .header {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    height: 5vh;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    font-size: clamp(14px, 2vw, 20px);
+    height: 8vh;
+  }
+
+  .app-title {
+    justify-self: start;
+  }
+
+  .landmark-logo {
+    justify-self: center;
+    max-height: 4vh;
+    width: auto;
   }
 
   .landmark-location {
+    justify-self: end;
     pointer-events: auto;
     cursor: pointer;
+    font-size: clamp(14px, 2vw, 20px);
   }
 
   .landmark-location:hover {
@@ -168,15 +182,18 @@
 
   .movie-title {
     display: flex;
+    flex: 1;
     align-items: center;
     justify-content: center;
-    min-height: 10vh;
+    font-size: clamp(24px, 4vw, 40px);
+    line-height: 1;
+    transform: translateY(-0.2em);
   }
 
   .movie-content {
     display: flex;
     flex-direction: row;
-    flex: 1;
+    flex: 4;
     gap: 5vw;
     align-items: center;
     padding: 2vh 2vw;
@@ -190,11 +207,11 @@
   }
 
   .arrow {
-    width: 35px;
+    width: 40px;
     flex-shrink: 0;
 
     background: black;
-    font-size: 25px;
+    font-size: clamp(18px, 2.5vw, 25px);
     box-sizing: border-box;
     pointer-events: auto;
     cursor: pointer;
@@ -222,11 +239,12 @@
   .movie-details dt,
   .movie-details dd {
     margin: 10px;
+    font-size: clamp(10px, 1.8vw, 18px);
   }
 
   .movie-details dt {
     border: 1px dotted;
-    padding: 2px;
+    padding: 4px;
     align-self: start;
   }
 
@@ -236,5 +254,9 @@
     justify-content: center;
     align-items: center;
     max-width: 25vw;
+  }
+
+  .movie-index {
+    font-size: clamp(10px, 1.8vw, 18px);
   }
 </style>

@@ -12,6 +12,20 @@ import (
 	"time"
 )
 
+const (
+	scheduleURL = "https://www.landmarktheatres.com/api/gatsby-source-boxofficeapi/schedule"
+	moviesURL   = "https://www.landmarktheatres.com/api/gatsby-source-boxofficeapi/movies"
+	referer     = "https://www.landmarktheatres.com/now-playing/"
+	host        = "www.landmarktheatres.com"
+	theaterId   = "G01CH"
+	timezone    = "America/Los_Angeles"
+)
+
+var (
+	PosterDir string
+	client    = &http.Client{}
+)
+
 type Landmark struct {
 	Theater
 	Movies []Movie
