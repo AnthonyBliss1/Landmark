@@ -13,6 +13,7 @@ export interface Movie {
     "PosterPath": string;
     "Rating": string;
     "Trailer": Trailer;
+    "Showtimes": Showtime[] | null;
 }
 
 export type MovieResponse = RawMovie[] | null;
@@ -28,6 +29,7 @@ export interface RawMovie {
     "poster": string;
     "certificate": string;
     "trailer": Trailer;
+    "showtimes": Showtime[] | null;
 }
 
 export type ScheduleResponse = { [_ in string]?: TheaterSchedule } | null;

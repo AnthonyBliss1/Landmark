@@ -48,6 +48,7 @@ type Movie struct {
 	PosterPath  string
 	Rating      string
 	Trailer     Trailer
+	Showtimes   []Showtime
 }
 
 func InitLandmark() *Landmark {
@@ -97,16 +98,17 @@ type Ticketing struct {
 type MovieResponse []RawMovie
 
 type RawMovie struct {
-	ID          string   `json:"id"`
-	Title       string   `json:"title"`
-	Description string   `json:"synopsis"`
-	Casting     []string `json:"casting"`
-	Direction   []string `json:"direction"`
-	Runtime     int      `json:"runtime"`
-	Genres      string   `json:"genres"`
-	PosterURL   string   `json:"poster"`
-	Rating      string   `json:"certificate"`
-	Trailer     Trailer  `json:"trailer"`
+	ID          string     `json:"id"`
+	Title       string     `json:"title"`
+	Description string     `json:"synopsis"`
+	Casting     []string   `json:"casting"`
+	Direction   []string   `json:"direction"`
+	Runtime     int        `json:"runtime"`
+	Genres      string     `json:"genres"`
+	PosterURL   string     `json:"poster"`
+	Rating      string     `json:"certificate"`
+	Trailer     Trailer    `json:"trailer"`
+	Showtimes   []Showtime `json:"showtimes"`
 }
 
 type Trailer struct {
@@ -226,6 +228,17 @@ func (l *Landmark) GetMovies() ([]Movie, error) {
 		return nil, fmt.Errorf("failed to unmarshal movie response: %q", err)
 	}
 
+	for i := range mr {
+		schedule, ok := theaterSchedule.Schedule[mr[i].ID]
+		if !ok {
+			continue
+		}
+
+		for _, showtimes := range schedule {
+			mr[i].Showtimes = append(mr[i].Showtimes, showtimes...)
+		}
+	}
+
 	if err := l.StoreRawMovies(mr); err != nil {
 		return nil, fmt.Errorf("failed to parse raw movie data: %q", err)
 	}
@@ -249,7 +262,7 @@ func (l *Landmark) StoreRawMovies(mr MovieResponse) error {
 	movies := make([]Movie, 0, len(mr))
 
 	for _, m := range mr {
-		movie := Movie{ID: m.ID, Title: m.Title, Description: m.Description, Actors: m.Casting, Director: m.Direction[0], Genres: m.Genres, Rating: m.Rating, Trailer: m.Trailer}
+		movie := Movie{ID: m.ID, Title: m.Title, Description: m.Description, Actors: m.Casting, Director: m.Direction[0], Genres: m.Genres, Rating: m.Rating, Trailer: m.Trailer, Showtimes: m.Showtimes}
 
 		// clean runtime (seconds -> xHR xMIN)
 		movie.Runtime = CleanRuntime(m.Runtime)

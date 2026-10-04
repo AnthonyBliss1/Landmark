@@ -72,6 +72,18 @@
             <dt>Description</dt>
             <dd>{currentMovie.Description}</dd>
           </dl>
+          <div class="showtimes">
+            {#each currentMovie.Showtimes as showtime}
+              {#if !showtime.isExpired}
+                <div class="showtime">
+                  {new Date(showtime.startsAt).toLocaleTimeString("en-US", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </div>
+              {/if}
+            {/each}
+          </div>
         </div>
         <button
           class="arrow"
@@ -226,14 +238,16 @@
   .movie-info {
     display: flex;
     flex: 3;
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: stretch;
     align-self: stretch;
   }
 
   .movie-details {
     display: grid;
     grid-template-columns: max-content 1fr;
+    width: 100%;
   }
 
   .movie-details dt,
@@ -254,6 +268,20 @@
     justify-content: center;
     align-items: center;
     max-width: 25vw;
+  }
+
+  .showtimes {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 20px 10px 0;
+  }
+
+  .showtime {
+    border: 1px solid;
+    padding: 6px 10px;
+    text-align: center;
+    font-size: clamp(10px, 1.8vw, 18px);
   }
 
   .movie-index {
