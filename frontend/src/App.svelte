@@ -8,6 +8,7 @@
   let currentMovie = $derived(movies[currentMovieIndex] ?? null);
 
   let loading = $state(true);
+  let trailerOverlay = $state(false);
   let error = $state("");
 
   async function getMovies() {
@@ -37,69 +38,99 @@
       </div>
     </div>
   {:else if currentMovie}
-    <div class="header">
-      <div class="app-title">Landmark Movies</div>
-      <img class="landmark-logo" src="/landmark.png" alt="landmark logo" />
-      <div class="landmark-location">Pasadena</div>
-    </div>
-
-    <div class="content">
-      <div class="movie-title">{currentMovie.Title}</div>
-      <div class="movie-content">
+    {#if trailerOverlay}
+      <div class="trailer-overlay">
         <button
-          class="arrow"
+          class="close-trailer-overlay"
           onclick={() => {
-            if (currentMovieIndex === 0) {
-              currentMovieIndex = movies.length - 1;
-            } else {
-              currentMovieIndex--;
-            }
-          }}
+            trailerOverlay = false;
+          }}>X</button
         >
-          {"<-"}
-        </button>
-        <img class="movie-image" src={currentMovie.Poster} alt="movie poster" />
-        <div class="movie-info">
-          <dl class="movie-details">
-            <dt>Director</dt>
-            <dd>{currentMovie.Director}</dd>
-            <dt>Cast</dt>
-            <dd>{currentMovie.Actors}</dd>
-            <dt>Rating</dt>
-            <dd>{currentMovie.Rating}</dd>
-            <dt>Runtime</dt>
-            <dd>{currentMovie.Runtime}</dd>
-            <dt>Description</dt>
-            <dd>{currentMovie.Description}</dd>
-          </dl>
-          <div class="showtimes">
-            {#each currentMovie.Showtimes as showtime}
-              {#if !showtime.isExpired}
-                <div class="showtime">
-                  {new Date(showtime.startsAt).toLocaleTimeString("en-US", {
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })}
-                </div>
-              {/if}
-            {/each}
+        <div class="trailer-video">
+          <video class="video" src={currentMovie.Trailer.HD} controls autoplay
+          ></video>
+        </div>
+      </div>
+    {/if}
+    <div class="movie-container">
+      <div class="header">
+        <div class="app-title">Landmark Movies</div>
+        <img class="landmark-logo" src="/landmark.png" alt="landmark logo" />
+        <div class="landmark-location">Pasadena</div>
+      </div>
+
+      <div class="content">
+        <div class="movie-title">{currentMovie.Title}</div>
+        <div class="movie-content">
+          <button
+            class="arrow"
+            onclick={() => {
+              if (currentMovieIndex === 0) {
+                currentMovieIndex = movies.length - 1;
+              } else {
+                currentMovieIndex--;
+              }
+            }}
+          >
+            {"<-"}
+          </button>
+          <img
+            class="movie-image"
+            src={currentMovie.Poster}
+            alt="movie poster"
+          />
+          <div class="movie-info">
+            <dl class="movie-details">
+              <dt>Director</dt>
+              <dd>{currentMovie.Director}</dd>
+              <dt>Cast</dt>
+              <dd>{currentMovie.Actors}</dd>
+              <dt>Rating</dt>
+              <dd>{currentMovie.Rating}</dd>
+              <dt>Runtime</dt>
+              <dd>{currentMovie.Runtime}</dd>
+              <dt>Description</dt>
+              <dd>{currentMovie.Description}</dd>
+            </dl>
+            <div class="showtimes">
+              {#each currentMovie.Showtimes as showtime}
+                {#if !showtime.isExpired}
+                  <div class="showtime">
+                    {new Date(showtime.startsAt).toLocaleTimeString("en-US", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </div>
+                {/if}
+              {/each}
+            </div>
+            <div class="movie-trailer">
+              <button
+                class="watch-trailer"
+                onclick={() => {
+                  trailerOverlay = true;
+                }}>Watch Trailer</button
+              >
+            </div>
+          </div>
+          <button
+            class="arrow"
+            onclick={() => {
+              if (currentMovieIndex === movies.length - 1) {
+                currentMovieIndex = 0;
+              } else {
+                currentMovieIndex++;
+              }
+            }}
+          >
+            {"->"}
+          </button>
+        </div>
+        <div class="movie-footer">
+          <div class="movie-index">
+            {currentMovieIndex + 1} / {movies.length}
           </div>
         </div>
-        <button
-          class="arrow"
-          onclick={() => {
-            if (currentMovieIndex === movies.length - 1) {
-              currentMovieIndex = 0;
-            } else {
-              currentMovieIndex++;
-            }
-          }}
-        >
-          {"->"}
-        </button>
-      </div>
-      <div class="movie-footer">
-        <div class="movie-index">{currentMovieIndex + 1} / {movies.length}</div>
       </div>
     </div>
   {/if}
@@ -113,6 +144,7 @@
     min-height: 100vh;
     min-width: 100vw;
     box-sizing: border-box;
+    position: relative;
   }
 
   .loading-container {
@@ -154,6 +186,57 @@
     }
   }
 
+  .movie-container {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .trailer-overlay {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    inset: 0;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(0 0 0 / 60%);
+    backdrop-filter: blur(10px);
+    pointer-events: auto;
+    z-index: 99;
+  }
+
+  .trailer-video {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: min(80vw, 1000px);
+    max-height: 80vh;
+  }
+
+  .video {
+    display: block;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  .close-trailer-overlay {
+    position: absolute;
+    top: 2vh;
+    right: 2vw;
+    background: black;
+    color: white;
+    font-size: clamp(18px, 2.5vw, 25px);
+    cursor: pointer;
+    padding: 4px 10px;
+    border: 1px dashed white;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  .close-trailer-overlay:active {
+    border-style: solid;
+  }
   .header {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -228,10 +311,10 @@
     pointer-events: auto;
     cursor: pointer;
     padding: 2px;
-    border: 1px solid transparent;
+    border: 1px dashed white;
   }
 
-  .arrow:hover {
+  .arrow:active {
     border: 1px solid;
   }
 
@@ -239,8 +322,7 @@
     display: flex;
     flex: 3;
     flex-direction: column;
-    justify-content: center;
-    align-items: stretch;
+    justify-content: space-evenly;
     align-self: stretch;
   }
 
@@ -248,6 +330,7 @@
     display: grid;
     grid-template-columns: max-content 1fr;
     width: 100%;
+    margin: 0;
   }
 
   .movie-details dt,
@@ -258,15 +341,12 @@
 
   .movie-details dt {
     border: 1px dotted;
-    padding: 4px;
+    padding: 0px 4px;
     align-self: start;
   }
 
   .movie-image {
-    display: flex;
     flex: 3;
-    justify-content: center;
-    align-items: center;
     max-width: 25vw;
   }
 
@@ -274,7 +354,7 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
-    margin: 20px 10px 0;
+    margin: 0px 10px 0;
   }
 
   .showtime {
@@ -282,6 +362,26 @@
     padding: 6px 10px;
     text-align: center;
     font-size: clamp(10px, 1.8vw, 18px);
+  }
+
+  .movie-trailer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .watch-trailer {
+    background: black;
+    font-size: clamp(18px, 2.5vw, 25px);
+    box-sizing: border-box;
+    pointer-events: auto;
+    cursor: pointer;
+    padding: 2px 20px;
+    border: 1px dashed white;
+  }
+
+  .watch-trailer:active {
+    border: 1px solid;
   }
 
   .movie-index {
