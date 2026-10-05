@@ -72,7 +72,7 @@
               }
             }}
           >
-            {"<-"}
+            <img src="/chevron-left.svg" alt="Previous movie" />
           </button>
           <img
             class="movie-image"
@@ -123,7 +123,7 @@
               }
             }}
           >
-            {"->"}
+            <img src="/chevron-right.svg" alt="Next movie" />
           </button>
         </div>
         <div class="movie-footer">
@@ -200,8 +200,7 @@
     inset: 0;
     justify-content: center;
     align-items: center;
-    background-color: rgb(0 0 0 / 60%);
-    backdrop-filter: blur(10px);
+    background-color: rgb(0 0 0 / 90%);
     pointer-events: auto;
     z-index: 99;
   }
@@ -226,9 +225,9 @@
     right: 2vw;
     background: black;
     color: white;
-    font-size: clamp(18px, 2.5vw, 25px);
+    font-size: clamp(18px, 3vw, 30px);
     cursor: pointer;
-    padding: 4px 10px;
+    padding: 8px 20px;
     border: 1px dashed white;
     pointer-events: auto;
     cursor: pointer;
@@ -302,16 +301,21 @@
   }
 
   .arrow {
-    width: 40px;
+    display: flex;
+    height: clamp(40px, 6rem, 60px);
+    width: clamp(40px, 6rem, 60px);
     flex-shrink: 0;
-
+    justify-content: center;
+    align-items: center;
     background: black;
-    font-size: clamp(18px, 2.5vw, 25px);
     box-sizing: border-box;
+    border: 1px dashed white;
     pointer-events: auto;
     cursor: pointer;
-    padding: 2px;
-    border: 1px dashed white;
+  }
+
+  .arrow img {
+    display: block;
   }
 
   .arrow:active {
@@ -372,11 +376,11 @@
 
   .watch-trailer {
     background: black;
-    font-size: clamp(18px, 2.5vw, 25px);
+    font-size: clamp(18px, 2vw, 20px);
     box-sizing: border-box;
     pointer-events: auto;
     cursor: pointer;
-    padding: 2px 20px;
+    padding: 20px 20px;
     border: 1px dashed white;
   }
 
