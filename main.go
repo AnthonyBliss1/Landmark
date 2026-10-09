@@ -23,7 +23,7 @@ func init() {
 	// Register a custom event whose associated data type is string.
 	// This is not required, but the binding generator will pick up registered events
 	// and provide a strongly typed JS/TS API for them.
-	application.RegisterEvent[string]("time")
+	application.RegisterEvent[bool]("refresh")
 }
 
 // main function serves as the application's entry point. It initializes the application, creates a window,
@@ -70,13 +70,11 @@ func main() {
 		URL:              "/",
 	})
 
-	// Create a goroutine that emits an event containing the current time every second.
-	// The frontend can listen to this event and update the UI accordingly.
+	// getMovies refresh go routine
 	go func() {
 		for {
-			now := time.Now().Format(time.RFC1123)
-			app.Event.Emit("time", now)
-			time.Sleep(time.Second)
+			time.Sleep(time.Hour) // will start with hour refresh maybe bump to 2 hours
+			app.Event.Emit("refresh", true)
 		}
 	}()
 

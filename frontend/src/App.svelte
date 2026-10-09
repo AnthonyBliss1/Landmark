@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
+  import { Events } from "@wailsio/runtime";
   import { Landmark } from "../bindings/changeme/backend";
   import type { Movie } from "../bindings/changeme/backend";
 
@@ -13,6 +14,7 @@
 
   async function getMovies() {
     loading = true;
+    currentMovieIndex = 0;
     error = "";
 
     try {
@@ -25,8 +27,17 @@
     }
   }
 
+  const refreshMovies = Events.On("refresh", () => {
+    getMovies();
+  });
+
   onMount(() => {
     void getMovies();
+  });
+
+  // cleanup events
+  onDestroy(() => {
+    refreshMovies();
   });
 </script>
 
