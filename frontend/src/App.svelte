@@ -14,11 +14,18 @@
   let trailerOverlay = $state(false);
   let error = $state("");
 
+  let validShowtimes = $derived(
+    currentMovie?.Showtimes?.filter(
+      (showtime) =>
+        !showtime.isExpired &&
+        new Date(showtime.startsAt).getTime() > Date.now(),
+    ) ?? [],
+  );
+
   async function getMovies() {
     loading = true;
     currentMovieIndex = 0;
     bookingURL = "";
-    timerCount = 1;
     error = "";
 
     try {
@@ -66,8 +73,7 @@
           }}>X</button
         >
         <div class="trailer-video">
-          <video class="video" src={currentMovie.Trailer.HD} controls autoplay
-          ></video>
+          <video class="video" src={currentMovie.Trailer.HD} autoplay></video>
         </div>
       </div>
     {:else if bookingURL !== ""}
@@ -143,21 +149,21 @@
               <dd>{currentMovie.Description}</dd>
             </dl>
             <div class="showtimes">
-              {#each currentMovie.Showtimes as showtime}
-                {#if !showtime.isExpired}
-                  <button
-                    class="showtime"
-                    onclick={() => {
-                      bookingURL =
-                        showtime?.data?.ticketing?.[0]?.urls?.[0] ?? "";
-                    }}
-                  >
-                    {new Date(showtime.startsAt).toLocaleTimeString("en-US", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                  </button>
-                {/if}
+              {#each validShowtimes as showtime}
+                <button
+                  class="showtime"
+                  onclick={() => {
+                    bookingURL =
+                      showtime?.data?.ticketing?.[0]?.urls?.[0] ?? "";
+                  }}
+                >
+                  {new Date(showtime.startsAt).toLocaleTimeString("en-US", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </button>
+              {:else}
+                <p>No more showtimes today</p>
               {/each}
             </div>
             <div class="movie-trailer">
@@ -531,6 +537,13 @@
 
   .showtime:active {
     border: 1px dotted;
+  }
+
+  .showtimes p {
+    grid-column: 1 / -1;
+    font-size: clamp(10px, 1.8vw, 18px);
+    text-align: center;
+    margin: 0;
   }
 
   .movie-trailer {
