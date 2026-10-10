@@ -7,6 +7,8 @@
   let movies = $state<Movie[]>([]);
   let currentMovieIndex = $state(0);
   let currentMovie = $derived(movies[currentMovieIndex] ?? null);
+  let bookingURL = $state("");
+  let timerCount = $state(1);
 
   let loading = $state(true);
   let trailerOverlay = $state(false);
@@ -15,6 +17,8 @@
   async function getMovies() {
     loading = true;
     currentMovieIndex = 0;
+    bookingURL = "";
+    timerCount = 1;
     error = "";
 
     try {
@@ -25,6 +29,10 @@
     } finally {
       loading = false;
     }
+  }
+
+  function bookingEventStart() {
+    Events.Emit("bookingEventStart", timerCount);
   }
 
   const refreshMovies = Events.On("refresh", () => {
@@ -61,6 +69,37 @@
           <video class="video" src={currentMovie.Trailer.HD} controls autoplay
           ></video>
         </div>
+      </div>
+    {:else if bookingURL !== ""}
+      <div class="booking-overlay">
+        <button
+          class="close-booking-overlay"
+          onclick={() => {
+            bookingURL = "";
+          }}>X</button
+        >
+        <div class="booking-body">
+          <p class="booking-p">
+            [ Preparing booking URL <span class="dots"></span> ]
+          </p>
+          <p class="booking-p2">Please set a timeout for the booking session</p>
+          <div class="number-input">
+            <button
+              class="timer-button"
+              onclick={() => (timerCount = Math.max(1, timerCount - 1))}
+              >−</button
+            >
+            <span>{String(timerCount).padStart(2, "0")} min</span>
+            <button
+              class="timer-button"
+              onclick={() => (timerCount = Math.min(15, timerCount + 1))}
+              >+</button
+            >
+          </div>
+        </div>
+        <a class="book-showtime" href={bookingURL} onclick={bookingEventStart}
+          >Book Showtime</a
+        >
       </div>
     {/if}
     <div class="movie-container">
@@ -106,12 +145,18 @@
             <div class="showtimes">
               {#each currentMovie.Showtimes as showtime}
                 {#if !showtime.isExpired}
-                  <div class="showtime">
+                  <button
+                    class="showtime"
+                    onclick={() => {
+                      bookingURL =
+                        showtime?.data?.ticketing?.[0]?.urls?.[0] ?? "";
+                    }}
+                  >
                     {new Date(showtime.startsAt).toLocaleTimeString("en-US", {
                       hour: "numeric",
                       minute: "2-digit",
                     })}
-                  </div>
+                  </button>
                 {/if}
               {/each}
             </div>
@@ -148,6 +193,11 @@
 </main>
 
 <style>
+  button {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
   .main-container {
     display: flex;
     flex-direction: column;
@@ -211,7 +261,7 @@
     inset: 0;
     justify-content: center;
     align-items: center;
-    background-color: rgb(0 0 0 / 90%);
+    background-color: rgb(0 0 0 / 95%);
     pointer-events: auto;
     z-index: 99;
   }
@@ -247,6 +297,105 @@
   .close-trailer-overlay:active {
     border-style: solid;
   }
+
+  .booking-overlay {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    inset: 0;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(0 0 0 / 98%);
+    pointer-events: auto;
+    z-index: 99;
+  }
+
+  .booking-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 5vh;
+  }
+
+  .booking-p {
+    display: inline-flex;
+    font-size: clamp(18px, 2vw, 24px);
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .booking-p2 {
+    font-size: clamp(16px, 1.5vw, 20px);
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .number-input {
+    display: inline-flex;
+    align-items: center;
+    gap: 2vw;
+  }
+
+  .number-input span {
+    display: inline-flex;
+    align-items: center;
+    font-size: clamp(16px, 1.5vw, 20px);
+  }
+
+  .timer-button {
+    top: 2vh;
+    right: 2vw;
+    background: black;
+    color: white;
+    font-size: clamp(12px, 2vw, 24px);
+    cursor: pointer;
+    padding: 8px 20px;
+    border: 1px dashed white;
+  }
+
+  .timer-button:active {
+    border: 1px solid;
+  }
+
+  .book-showtime {
+    position: absolute;
+    bottom: 15vh;
+    background: black;
+    color: white;
+    font-size: clamp(12px, 2vw, 24px);
+    cursor: pointer;
+    padding: 8px 20px;
+    border: 1px dashed white;
+    text-decoration: none;
+
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  .book-showtime:active {
+    border: 1px solid;
+  }
+
+  .close-booking-overlay {
+    position: absolute;
+    top: 2vh;
+    right: 2vw;
+    background: black;
+    color: white;
+    font-size: clamp(18px, 3vw, 30px);
+    cursor: pointer;
+    padding: 8px 20px;
+    border: 1px dashed white;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  .close-booking-overlay:active {
+    border-style: solid;
+  }
+
   .header {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -377,6 +526,11 @@
     padding: 6px 10px;
     text-align: center;
     font-size: clamp(10px, 1.8vw, 18px);
+    background: black;
+  }
+
+  .showtime:active {
+    border: 1px dotted;
   }
 
   .movie-trailer {

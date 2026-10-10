@@ -17,8 +17,10 @@ const (
 	moviesURL   = "https://www.landmarktheatres.com/api/gatsby-source-boxofficeapi/movies"
 	referer     = "https://www.landmarktheatres.com/now-playing/"
 	host        = "www.landmarktheatres.com"
-	theaterId   = "G01CH"
-	timezone    = "America/Los_Angeles"
+
+	// TODO: need to make these dynamic
+	theaterId = "G01CH"
+	timezone  = "America/Los_Angeles"
 )
 
 var (

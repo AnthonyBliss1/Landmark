@@ -24,6 +24,7 @@ func init() {
 	// This is not required, but the binding generator will pick up registered events
 	// and provide a strongly typed JS/TS API for them.
 	application.RegisterEvent[bool]("refresh")
+	application.RegisterEvent[int]("bookingEventStart")
 }
 
 // main function serves as the application's entry point. It initializes the application, creates a window,
@@ -55,7 +56,7 @@ func main() {
 	// 'Mac' options tailor the window when running on macOS.
 	// 'BackgroundColour' is the background colour of the window.
 	// 'URL' is the URL that will be loaded into the webview.
-	app.Window.NewWithOptions(application.WebviewWindowOptions{
+	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:     "Landmark ARB",
 		Frameless: true,
 		// Window sized to the golden ratio (1000 / 618 ≈ 1.618).
@@ -77,6 +78,15 @@ func main() {
 			app.Event.Emit("refresh", true)
 		}
 	}()
+
+	app.Event.On("bookingEventStart", func(e *application.CustomEvent) {
+		go func() {
+			timerCount := e.Data.(int)
+			app.Logger.Info("[ Booking timer set ]", "minutes", timerCount)
+			time.Sleep(time.Minute * time.Duration(timerCount))
+			window.SetURL("/")
+		}()
+	})
 
 	// Run the application. This blocks until the application has been exited.
 	err := app.Run()
