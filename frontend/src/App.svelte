@@ -7,11 +7,15 @@
   let movies = $state<Movie[]>([]);
   let currentMovieIndex = $state(0);
   let currentMovie = $derived(movies[currentMovieIndex] ?? null);
+  let currentMovieTrailer = $derived(
+    currentMovie.Trailer.HD ?? currentMovie.Trailer.SD,
+  ); // use HD trailer if not avail use SD
   let bookingURL = $state("");
-  let timerCount = $state(1);
+  let timerCount = $state(5); // default set to 5 minutes
 
   let loading = $state(true);
   let trailerOverlay = $state(false);
+  let descExpanded = $state(false);
   let error = $state("");
 
   let validShowtimes = $derived(
@@ -64,7 +68,7 @@
       </div>
     </div>
   {:else if currentMovie}
-    {#if trailerOverlay}
+    {#if trailerOverlay && currentMovieTrailer}
       <div class="trailer-overlay">
         <button
           class="close-trailer-overlay"
@@ -73,7 +77,7 @@
           }}>X</button
         >
         <div class="trailer-video">
-          <video class="video" src={currentMovie.Trailer.HD} autoplay></video>
+          <video class="video" src={currentMovieTrailer} autoplay></video>
         </div>
       </div>
     {:else if bookingURL !== ""}
@@ -146,7 +150,12 @@
               <dt>Runtime</dt>
               <dd>{currentMovie.Runtime}</dd>
               <dt>Description</dt>
-              <dd>{currentMovie.Description}</dd>
+              <dd
+                class:expanded={descExpanded}
+                onclick={() => (descExpanded = !descExpanded)}
+              >
+                {currentMovie.Description}
+              </dd>
             </dl>
             <div class="showtimes">
               {#each validShowtimes as showtime}
@@ -166,14 +175,16 @@
                 <p>No more showtimes today</p>
               {/each}
             </div>
-            <div class="movie-trailer">
-              <button
-                class="watch-trailer"
-                onclick={() => {
-                  trailerOverlay = true;
-                }}>Watch Trailer</button
-              >
-            </div>
+            {#if currentMovieTrailer}
+              <div class="movie-trailer">
+                <button
+                  class="watch-trailer"
+                  onclick={() => {
+                    trailerOverlay = true;
+                  }}>Watch Trailer</button
+                >
+              </div>
+            {/if}
           </div>
           <button
             class="arrow"
@@ -507,6 +518,22 @@
   .movie-details dd {
     margin: 10px;
     font-size: clamp(10px, 1.8vw, 18px);
+  }
+
+  .movie-details dd {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
+    overflow: hidden;
+
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  .movie-details dd.expanded {
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
   }
 
   .movie-details dt {
