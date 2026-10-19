@@ -14,6 +14,7 @@
   let timerCount = $state(5); // default set to 5 minutes
 
   let loading = $state(true);
+  let isVideoLoading = $state(false);
   let trailerOverlay = $state(false);
   let descExpanded = $state(false);
   let error = $state("");
@@ -26,8 +27,14 @@
     ) ?? [],
   );
 
+  const movieDescription = document.getElementById("description");
+  movieDescription?.addEventListener("click", function () {
+    descExpanded = !descExpanded;
+  });
+
   async function getMovies() {
     loading = true;
+    descExpanded = false;
     currentMovieIndex = 0;
     bookingURL = "";
     error = "";
@@ -44,6 +51,38 @@
 
   function bookingEventStart() {
     Events.Emit("bookingEventStart", timerCount);
+  }
+
+  function decrementMovieIndex() {
+    descExpanded = false;
+
+    if (currentMovieIndex === 0) {
+      currentMovieIndex = movies.length - 1;
+    } else {
+      currentMovieIndex--;
+    }
+  }
+
+  function incrementMovieIndex() {
+    descExpanded = false;
+
+    if (currentMovieIndex === movies.length - 1) {
+      currentMovieIndex = 0;
+    } else {
+      currentMovieIndex++;
+    }
+  }
+
+  function toggleDescription() {
+    descExpanded = !descExpanded;
+  }
+
+  function videoStartLoading() {
+    isVideoLoading = true;
+  }
+
+  function videoStopLoading() {
+    isVideoLoading = false;
   }
 
   const refreshMovies = Events.On("refresh", () => {
@@ -77,7 +116,17 @@
           }}>X</button
         >
         <div class="trailer-video">
-          <video class="video" src={currentMovieTrailer} autoplay></video>
+          {#if isVideoLoading}
+            <div class="video-spinner"></div>
+          {/if}
+          <video
+            class="video"
+            src={currentMovieTrailer}
+            autoplay
+            onloadstart={videoStartLoading}
+            onwaiting={videoStartLoading}
+            onplaying={videoStopLoading}
+          ></video>
         </div>
       </div>
     {:else if bookingURL !== ""}
@@ -122,16 +171,7 @@
       <div class="content">
         <div class="movie-title">{currentMovie.Title}</div>
         <div class="movie-content">
-          <button
-            class="arrow"
-            onclick={() => {
-              if (currentMovieIndex === 0) {
-                currentMovieIndex = movies.length - 1;
-              } else {
-                currentMovieIndex--;
-              }
-            }}
-          >
+          <button class="arrow" onclick={decrementMovieIndex}>
             <img src="/chevron-left.svg" alt="Previous movie" />
           </button>
           <img
@@ -151,8 +191,9 @@
               <dd>{currentMovie.Runtime}</dd>
               <dt>Description</dt>
               <dd
+                class="description"
                 class:expanded={descExpanded}
-                onclick={() => (descExpanded = !descExpanded)}
+                onclick={toggleDescription}
               >
                 {currentMovie.Description}
               </dd>
@@ -186,16 +227,7 @@
               </div>
             {/if}
           </div>
-          <button
-            class="arrow"
-            onclick={() => {
-              if (currentMovieIndex === movies.length - 1) {
-                currentMovieIndex = 0;
-              } else {
-                currentMovieIndex++;
-              }
-            }}
-          >
+          <button class="arrow" onclick={incrementMovieIndex}>
             <img src="/chevron-right.svg" alt="Next movie" />
           </button>
         </div>
@@ -291,10 +323,23 @@
     max-height: 80vh;
   }
 
+  .video-spinner {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border: 3px solid #555;
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
   .video {
     display: block;
-    pointer-events: auto;
-    cursor: pointer;
   }
 
   .close-trailer-overlay {
@@ -306,7 +351,7 @@
     font-size: clamp(18px, 3vw, 30px);
     cursor: pointer;
     padding: 8px 20px;
-    border: 1px dashed white;
+    border: 1px dotted white;
     pointer-events: auto;
     cursor: pointer;
   }
@@ -369,7 +414,7 @@
     font-size: clamp(12px, 2vw, 24px);
     cursor: pointer;
     padding: 8px 20px;
-    border: 1px dashed white;
+    border: 1px dotted white;
   }
 
   .timer-button:active {
@@ -384,7 +429,7 @@
     font-size: clamp(12px, 2vw, 24px);
     cursor: pointer;
     padding: 8px 20px;
-    border: 1px dashed white;
+    border: 1px dotted white;
     text-decoration: none;
 
     pointer-events: auto;
@@ -404,7 +449,7 @@
     font-size: clamp(18px, 3vw, 30px);
     cursor: pointer;
     padding: 8px 20px;
-    border: 1px dashed white;
+    border: 1px dotted white;
     pointer-events: auto;
     cursor: pointer;
   }
@@ -438,8 +483,9 @@
     font-size: clamp(14px, 2vw, 20px);
   }
 
-  .landmark-location:hover {
-    text-decoration: underline;
+  .landmark-location:active {
+    text-decoration: underline dotted 1.5px;
+    text-underline-offset: 0.2em;
     pointer-events: auto;
   }
 
@@ -468,7 +514,7 @@
     gap: 5vw;
     align-items: center;
     padding: 2vh 2vw;
-    border: dashed 1px;
+    border: dotted 1px;
   }
 
   .movie-footer {
@@ -486,7 +532,7 @@
     align-items: center;
     background: black;
     box-sizing: border-box;
-    border: 1px dashed white;
+    border: 1px dotted white;
     pointer-events: auto;
     cursor: pointer;
   }
@@ -531,6 +577,11 @@
     cursor: pointer;
   }
 
+  .movie-details dd.description {
+    line-height: 1.4;
+    min-height: calc(5 * 1.4em);
+  }
+
   .movie-details dd.expanded {
     -webkit-line-clamp: unset;
     line-clamp: unset;
@@ -544,6 +595,9 @@
 
   .movie-image {
     flex: 3;
+
+    /* need to standardize to avoid inconsistent pages */
+    max-height: 67vh;
     max-width: 25vw;
   }
 
@@ -586,7 +640,7 @@
     pointer-events: auto;
     cursor: pointer;
     padding: 20px 20px;
-    border: 1px dashed white;
+    border: 1px dotted white;
   }
 
   .watch-trailer:active {
