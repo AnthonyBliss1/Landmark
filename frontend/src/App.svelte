@@ -216,16 +216,15 @@
                 <p>No more showtimes today</p>
               {/each}
             </div>
-            {#if currentMovieTrailer}
-              <div class="movie-trailer">
-                <button
-                  class="watch-trailer"
-                  onclick={() => {
-                    trailerOverlay = true;
-                  }}>Watch Trailer</button
-                >
-              </div>
-            {/if}
+            <div class="movie-trailer">
+              <button
+                class="watch-trailer"
+                class:invisible={!currentMovieTrailer}
+                onclick={() => {
+                  trailerOverlay = true;
+                }}>Watch Trailer</button
+              >
+            </div>
           </div>
           <button class="arrow" onclick={incrementMovieIndex}>
             <img src="/chevron-right.svg" alt="Next movie" />
@@ -242,9 +241,19 @@
 </main>
 
 <style>
+  :root {
+    --shadow: #3d3d3d;
+  }
+
   button {
     pointer-events: auto;
     cursor: pointer;
+    box-shadow: 3px 3px 0 var(--shadow);
+  }
+
+  button:active {
+    transform: translate(3px, 3px);
+    box-shadow: none;
   }
 
   .main-container {
@@ -641,6 +650,10 @@
     cursor: pointer;
     padding: 20px 20px;
     border: 1px dotted white;
+  }
+
+  .watch-trailer.invisible {
+    visibility: hidden;
   }
 
   .watch-trailer:active {
