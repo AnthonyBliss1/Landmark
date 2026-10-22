@@ -606,7 +606,7 @@
     flex: 3;
 
     /* need to standardize to avoid inconsistent pages */
-    max-height: 67vh;
+    max-height: 65vh;
     max-width: 25vw;
   }
 
