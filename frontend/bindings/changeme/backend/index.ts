@@ -13,6 +13,7 @@ export type {
     ScheduleResponse,
     Showtime,
     ShowtimeData,
+    Theater,
     TheaterSchedule,
     Ticketing,
     Trailer

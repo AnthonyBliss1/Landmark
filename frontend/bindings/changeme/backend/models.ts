@@ -45,6 +45,12 @@ export interface ShowtimeData {
     "ticketing": Ticketing[] | null;
 }
 
+export interface Theater {
+    "id": string;
+    "name": string;
+    "timeZone": string;
+}
+
 export interface TheaterSchedule {
     "schedule": { [_ in string]?: { [_ in string]?: Showtime[] | null } | null } | null;
     "moviesTags": { [_ in string]?: string[] | null } | null;

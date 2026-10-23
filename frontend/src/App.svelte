@@ -2,19 +2,26 @@
   import { onDestroy, onMount } from "svelte";
   import { Events } from "@wailsio/runtime";
   import { Landmark } from "../bindings/changeme/backend";
-  import type { Movie } from "../bindings/changeme/backend";
+  import type { Movie, Theater } from "../bindings/changeme/backend";
 
+  let allTheaters = $state<Theater[]>([]);
   let movies = $state<Movie[]>([]);
+
+  let currentTheaterIndex = $state(0);
+  let currentTheater = $derived(allTheaters[currentTheaterIndex] ?? null);
+
   let currentMovieIndex = $state(0);
   let currentMovie = $derived(movies[currentMovieIndex] ?? null);
   let currentMovieTrailer = $derived(
     currentMovie.Trailer.HD ?? currentMovie.Trailer.SD,
   ); // use HD trailer if not avail use SD
+
   let bookingURL = $state("");
   let timerCount = $state(5); // default set to 5 minutes
 
   let loading = $state(true);
   let isVideoLoading = $state(false);
+  let showTheaters = $state(false);
   let trailerOverlay = $state(false);
   let descExpanded = $state(false);
   let error = $state("");
@@ -40,12 +47,21 @@
     error = "";
 
     try {
-      movies = (await Landmark.GetMovies()) ?? [];
+      movies = (await Landmark.GetMovies(currentTheater)) ?? [];
     } catch (err) {
       error = String(error);
       console.error("Failed to collect Movies:  ", err);
     } finally {
       loading = false;
+    }
+  }
+
+  async function getTheaters() {
+    try {
+      allTheaters = (await Landmark.GetTheaters()) ?? [];
+    } catch (err) {
+      error = String(error);
+      console.error("Failed to get Theaters: ", error);
     }
   }
 
@@ -77,6 +93,10 @@
     descExpanded = !descExpanded;
   }
 
+  function toggleTheaters() {
+    showTheaters = !showTheaters;
+  }
+
   function videoStartLoading() {
     isVideoLoading = true;
   }
@@ -90,7 +110,13 @@
   });
 
   onMount(() => {
-    void getMovies();
+    void (async () => {
+      await getTheaters();
+      void getMovies();
+
+      console.info("All Theaters:", allTheaters);
+      console.info("Current Theater:", currentTheater);
+    })();
   });
 
   // cleanup events
@@ -165,7 +191,28 @@
       <div class="header">
         <div class="app-title">Landmark Movies</div>
         <img class="landmark-logo" src="/landmark.png" alt="landmark logo" />
-        <div class="landmark-location">Pasadena</div>
+        <div class="landmark-location">
+          <button class="theater-toggle" onclick={toggleTheaters}
+            >{currentTheater.name}</button
+          >
+          {#if showTheaters}
+            <ul class="theater-list">
+              {#each allTheaters as theater, index}
+                <li>
+                  <button
+                    class="select-theater"
+                    onclick={() => {
+                      currentTheaterIndex = index;
+                      currentTheater = theater;
+                      showTheaters = false;
+                      void getMovies();
+                    }}>{theater.name}</button
+                  >
+                </li>
+              {/each}
+            </ul>
+          {/if}
+        </div>
       </div>
 
       <div class="content">
@@ -486,16 +533,53 @@
   }
 
   .landmark-location {
+    position: relative;
     justify-self: end;
     pointer-events: auto;
     cursor: pointer;
     font-size: clamp(14px, 2vw, 20px);
+    z-index: 10;
   }
 
-  .landmark-location:active {
-    text-decoration: underline dotted 1.5px;
-    text-underline-offset: 0.2em;
-    pointer-events: auto;
+  .theater-toggle {
+    background: transparent;
+    color: inherit;
+    border: none;
+    box-shadow: none;
+    font: inherit;
+  }
+
+  .theater-list {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    min-width: 220px;
+    max-height: 50vh;
+    overflow-y: auto;
+    margin: 8px 0 0;
+    padding: 8px 0;
+    list-style: none;
+    background: black;
+    border: 1px dotted white;
+    z-index: 20;
+  }
+
+  .theater-list li button {
+    display: block;
+    width: 100%;
+    padding: 10px 15px;
+    background: transparent;
+    color: white;
+    border: none;
+    box-shadow: none;
+    font: inherit;
+    font-size: clamp(10px, 1.8vw, 18px);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .theater-list li button:hover {
+    background: #333;
   }
 
   .content {

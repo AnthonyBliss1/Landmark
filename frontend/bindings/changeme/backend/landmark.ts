@@ -9,12 +9,16 @@ import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wails
 // @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
-export function GetMovies(): $CancellablePromise<$models.Movie[] | null> {
-    return $Call.ByID(1882299569);
+export function GetMovies(currentTheater: $models.Theater): $CancellablePromise<$models.Movie[] | null> {
+    return $Call.ByID(1882299569, currentTheater);
 }
 
-export function GetSchedule(): $CancellablePromise<$models.ScheduleResponse> {
-    return $Call.ByID(2075016289);
+export function GetSchedule(currentTheater: $models.Theater): $CancellablePromise<$models.ScheduleResponse> {
+    return $Call.ByID(2075016289, currentTheater);
+}
+
+export function GetTheaters(): $CancellablePromise<$models.Theater[] | null> {
+    return $Call.ByID(3872358394);
 }
 
 export function StoreRawMovies(mr: $models.MovieResponse): $CancellablePromise<void> {

@@ -2,6 +2,7 @@ package backend
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -18,9 +19,15 @@ const (
 	referer     = "https://www.landmarktheatres.com/now-playing/"
 	host        = "www.landmarktheatres.com"
 
-	// TODO: need to make these dynamic
-	theaterId = "G01CH"
-	timezone  = "America/Los_Angeles"
+	// %s represents the string date in format - 2026-10-18
+	pageDateURL  = "https://cms-assets.webediamovies.pro/prod/landmarktheatres/%s/public/page-data/index/page-data.json"
+	theaterIndex = 5
+
+	theaterURL = "https://cms-assets.webediamovies.pro/prod/landmarktheatres/%s/public/page-data/sq/d/%s.json"
+
+	defaultTheaterId       = "G01CH"
+	defaultTheaterName     = "Landmark Theatres Pasadena"
+	defaultTheaterTimezone = "America/Los_Angeles"
 )
 
 var (
@@ -29,11 +36,17 @@ var (
 )
 
 type Landmark struct {
-	Theater
-	Movies []Movie
+	Theaters []Theater
+	Movies   []Movie
 }
 
 type Theater struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Timezone string `json:"timeZone"`
+}
+
+type TheaterQParam struct {
 	ID       string `json:"id"`
 	Timezone string `json:"timeZone"`
 }
@@ -54,9 +67,16 @@ type Movie struct {
 }
 
 func InitLandmark() *Landmark {
-	// setup proxy client just in case
+	// TODO: setup proxy client just in case
 
-	return &Landmark{Theater: Theater{ID: theaterId, Timezone: timezone}}
+	// fetch theaters and initialize the Landmark struct
+	// movies will be fetched from the frontend since it needs to happen more often
+	theaters, err := GetTheaters()
+	if err != nil {
+		theaters = []Theater{{ID: defaultTheaterId, Name: defaultTheaterName, Timezone: defaultTheaterTimezone}}
+	}
+
+	return &Landmark{Theaters: theaters}
 }
 
 func (l Landmark) String() string {
@@ -69,7 +89,7 @@ func (l Landmark) String() string {
 }
 
 // ~~~~~~~~~~~~~~~~~~~~
-// Scraping Responses
+// Movie Scraping Responses
 // ~~~~~~~~~~~~~~~~~~~~
 
 type ScheduleResponse map[string]TheaterSchedule
@@ -119,16 +139,132 @@ type Trailer struct {
 }
 
 // ~~~~~~~~~~~~~~~~~~~~
+// Theater Scraping Responses
+// ~~~~~~~~~~~~~~~~~~~~
+
+type PageDataResponse struct {
+	StaticHashes []string `json:"staticQueryHashes"`
+}
+
+type TheaterDataResponse map[string]TheaterData
+
+type TheaterData struct {
+	AllTheater struct {
+		Nodes []Theater `json:"nodes"`
+	} `json:"allTheater"`
+}
+
+func GetPageData() (PageDataResponse, error) {
+	today := time.Now().Format("2006-01-02")
+	pageDataURL := fmt.Sprintf(pageDateURL, today)
+
+	req, err := http.NewRequest(http.MethodGet, pageDataURL, nil)
+	if err != nil {
+		return PageDataResponse{}, fmt.Errorf("failed to create page data request: %q", err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return PageDataResponse{}, fmt.Errorf("failed to make page data request: %q", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return PageDataResponse{}, errors.New("non 200 status code for page data response")
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return PageDataResponse{}, fmt.Errorf("failed to read page data response body: %q", err)
+	}
+
+	var pageData PageDataResponse
+
+	if err := json.Unmarshal(bodyBytes, &pageData); err != nil {
+		return PageDataResponse{}, fmt.Errorf("failed to unmarshal page data response: %q", err)
+	}
+
+	if len(pageData.StaticHashes) == 0 {
+		return PageDataResponse{}, errors.New("page data response is empty")
+	}
+
+	return pageData, nil
+}
+
+func GetTheaters() ([]Theater, error) {
+	pd, err := GetPageData()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create page data for theaters: %q", err)
+	}
+
+	if len(pd.StaticHashes) <= theaterIndex {
+		return nil, errors.New("theater index out of range of static hashes")
+	}
+
+	theaterHash := pd.StaticHashes[theaterIndex]
+	if theaterHash == "" {
+		return nil, errors.New("theater hash is empty")
+	}
+
+	today := time.Now().Format("2006-01-02")
+	theaterURL := fmt.Sprintf(theaterURL, today, theaterHash)
+
+	req, err := http.NewRequest(http.MethodGet, theaterURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create theater data request: %q", err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make theater data request: %q", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("non 200 status code for theater data response")
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read theater data response body: %q", err)
+	}
+
+	var theaterDataResponse TheaterDataResponse
+
+	if err := json.Unmarshal(bodyBytes, &theaterDataResponse); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal thater data response: %q", err)
+	}
+
+	var theaters []Theater
+	for _, theaterData := range theaterDataResponse {
+		theaters = append(theaters, theaterData.AllTheater.Nodes...)
+	}
+
+	if len(theaters) == 0 {
+		return nil, errors.New("theater data response is empty")
+	}
+
+	return theaters, nil
+}
+
+// ~~~~~~~~~~~~~~~~~~~~
 // Methods
 // ~~~~~~~~~~~~~~~~~~~~
 
-func (l *Landmark) GetSchedule() (ScheduleResponse, error) {
+func (l *Landmark) GetTheaters() []Theater {
+	return l.Theaters
+}
+
+func (l *Landmark) GetSchedule(currentTheater Theater) (ScheduleResponse, error) {
 	u, err := url.Parse(scheduleURL)
 	if err != nil {
 		return ScheduleResponse{}, fmt.Errorf("failed to parse url: %q", err)
 	}
 
-	theater, err := json.Marshal(l.Theater)
+	// can't use name field in the qparam to collect the schedule
+	currentQPTheater := TheaterQParam{ID: currentTheater.ID, Timezone: currentTheater.Timezone}
+
+	theater, err := json.Marshal(currentQPTheater)
 	if err != nil {
 		return ScheduleResponse{}, fmt.Errorf("failed to marhsal theater data: %q", err)
 	}
@@ -177,8 +313,8 @@ func (l *Landmark) GetSchedule() (ScheduleResponse, error) {
 	return sr, nil
 }
 
-func (l *Landmark) GetMovies() ([]Movie, error) {
-	sr, err := l.GetSchedule()
+func (l *Landmark) GetMovies(currentTheater Theater) ([]Movie, error) {
+	sr, err := l.GetSchedule(currentTheater)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get landmark schedule: %q", err)
 	}
@@ -192,9 +328,9 @@ func (l *Landmark) GetMovies() ([]Movie, error) {
 	params.Add("castingLimit", "3")
 	params.Add("basic", "false")
 
-	theaterSchedule, ok := sr[l.ID]
+	theaterSchedule, ok := sr[currentTheater.ID]
 	if !ok {
-		return nil, fmt.Errorf("schedule missing theater: %s", l.ID)
+		return nil, fmt.Errorf("schedule missing theater: %s", currentTheater.ID)
 	}
 
 	for id := range theaterSchedule.Schedule {
