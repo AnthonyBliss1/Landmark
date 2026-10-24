@@ -7,6 +7,8 @@
   let allTheaters = $state<Theater[]>([]);
   let movies = $state<Movie[]>([]);
 
+  let lastUpdated = $state<string>(new Date().toLocaleString());
+
   let currentTheaterIndex = $state(0);
   let currentTheater = $derived(allTheaters[currentTheaterIndex] ?? null);
 
@@ -45,6 +47,8 @@
     currentMovieIndex = 0;
     bookingURL = "";
     error = "";
+
+    lastUpdated = new Date().toLocaleString();
 
     try {
       movies = (await Landmark.GetMovies(currentTheater)) ?? [];
@@ -189,7 +193,10 @@
     {/if}
     <div class="movie-container">
       <div class="header">
-        <div class="app-title">Landmark Movies</div>
+        <div class="app-title">
+          <span>Showtimes as of</span>
+          <span class="last-updated">{lastUpdated}</span>
+        </div>
         <img class="landmark-logo" src="/landmark.png" alt="landmark logo" />
         <div class="landmark-location">
           <button class="theater-toggle" onclick={toggleTheaters}
@@ -290,6 +297,7 @@
 <style>
   :root {
     --shadow: #3d3d3d;
+    --shadow-tr: rgb(61 61 61 / 50%);
   }
 
   button {
@@ -299,7 +307,6 @@
   }
 
   button:active {
-    transform: translate(3px, 3px);
     box-shadow: none;
   }
 
@@ -357,6 +364,11 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+  }
+
+  .last-updated {
+    padding: 0.2rem;
+    background-color: var(--shadow-tr);
   }
 
   .trailer-overlay {
@@ -538,14 +550,21 @@
     pointer-events: auto;
     cursor: pointer;
     font-size: clamp(14px, 2vw, 20px);
+    width: clamp(
+      25vw,
+      40rem,
+      40vw
+    ); /* not sure how this will look on rpi screen */
     z-index: 10;
   }
 
   .theater-toggle {
     background: transparent;
     color: inherit;
+    width: 100%;
     border: none;
     box-shadow: none;
+    text-align: right;
     font: inherit;
   }
 
@@ -554,9 +573,11 @@
     top: 100%;
     right: 0;
     min-width: 220px;
-    max-height: 50vh;
+    max-height: 55vh;
     overflow-y: auto;
-    margin: 8px 0 0;
+    overflow-x: hidden;
+    margin: 15px 0 0;
+    pointer-events: auto;
     padding: 8px 0;
     list-style: none;
     background: black;
@@ -588,6 +609,7 @@
     flex: 1;
     padding: 2vh 2vw;
     border: solid 1px;
+    box-shadow: 3px 3px 0 var(--shadow);
   }
 
   .movie-title {
@@ -618,8 +640,8 @@
 
   .arrow {
     display: flex;
-    height: clamp(40px, 6rem, 60px);
-    width: clamp(40px, 6rem, 60px);
+    height: clamp(40px, 8rem, 60px);
+    width: clamp(40px, 8rem, 60px);
     flex-shrink: 0;
     justify-content: center;
     align-items: center;
@@ -673,6 +695,8 @@
   .movie-details dd.description {
     line-height: 1.4;
     min-height: calc(5 * 1.4em);
+    max-height: calc(10 * 1.4em);
+    overflow: hidden;
   }
 
   .movie-details dd.expanded {
@@ -694,11 +718,15 @@
     max-width: 25vw;
   }
 
+  /* if the showtimes are longer than 4 lines theres no clean handling*/
   .showtimes {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: minmax(40px, auto);
     gap: 10px;
     margin: 0px 10px 0;
+    min-height: 190px; /* equivalent to 4 rows - 50px each row but one at 40px */
+    align-content: start;
   }
 
   .showtime {
