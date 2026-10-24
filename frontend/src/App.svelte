@@ -7,7 +7,7 @@
   let allTheaters = $state<Theater[]>([]);
   let movies = $state<Movie[]>([]);
 
-  let lastUpdated = $state<string>(new Date().toLocaleString());
+  let lastUpdated = $state<string>(new Date().toLocaleString("en-US"));
 
   let currentTheaterIndex = $state(0);
   let currentTheater = $derived(allTheaters[currentTheaterIndex] ?? null);
@@ -48,7 +48,7 @@
     bookingURL = "";
     error = "";
 
-    lastUpdated = new Date().toLocaleString();
+    lastUpdated = new Date().toLocaleString("en-US");
 
     try {
       movies = (await Landmark.GetMovies(currentTheater)) ?? [];
@@ -192,6 +192,14 @@
       </div>
     {/if}
     <div class="movie-container">
+      {#if showTheaters}
+        <button
+          class="theater-list-overlay"
+          aria-label="close theater list"
+          onclick={toggleTheaters}
+        ></button>
+      {/if}
+
       <div class="header">
         <div class="app-title">
           <span>Showtimes as of</span>
@@ -364,6 +372,17 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+  }
+
+  .theater-list-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(0 0 0 / 50%);
+    border: none;
+    box-shadow: none;
+    z-index: 5;
   }
 
   .last-updated {
@@ -687,9 +706,6 @@
     -webkit-line-clamp: 5;
     line-clamp: 5;
     overflow: hidden;
-
-    pointer-events: auto;
-    cursor: pointer;
   }
 
   .movie-details dd.description {
@@ -697,6 +713,9 @@
     min-height: calc(5 * 1.4em);
     max-height: calc(10 * 1.4em);
     overflow: hidden;
+
+    pointer-events: auto;
+    cursor: pointer;
   }
 
   .movie-details dd.expanded {
