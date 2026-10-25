@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -61,6 +62,61 @@ func StorePosterImage(u string, title string) (string, error) {
 	}
 
 	return imgPath, nil
+}
+
+func StoreFavoriteTheaterID(id string) error {
+	if id == "" {
+		return errors.New("no theater id found")
+	}
+
+	fileName := "favorite-theater.json"
+	ftPath := filepath.Join(PosterDir, fileName)
+
+	ft := FavoriteTheaterID{ID: id}
+	ftBytes, err := json.MarshalIndent(ft, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	if err = os.WriteFile(ftPath, ftBytes, 0o644); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DeleteFavoriteTheaterID() error {
+	fileName := "favorite-theater.json"
+	ftPath := filepath.Join(PosterDir, fileName)
+
+	ft := FavoriteTheaterID{ID: ""}
+	ftBytes, err := json.MarshalIndent(ft, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	if err = os.WriteFile(ftPath, ftBytes, 0o644); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func RetrieveFavoriteTheaterID() (string, error) {
+	fileName := "favorite-theater.json"
+	ftPath := filepath.Join(PosterDir, fileName)
+
+	ftBytes, err := os.ReadFile(ftPath)
+	if err != nil {
+		return "", err
+	}
+
+	var ft FavoriteTheaterID
+	if err := json.Unmarshal(ftBytes, &ft); err != nil {
+		return "", err
+	}
+
+	return ft.ID, nil
 }
 
 func CleanRuntime(r int) string {

@@ -3,6 +3,7 @@
   import { Events } from "@wailsio/runtime";
   import { Landmark } from "../bindings/changeme/backend";
   import type { Movie, Theater } from "../bindings/changeme/backend";
+  import Star from "@lucide/svelte/icons/star";
 
   let allTheaters = $state<Theater[]>([]);
   let movies = $state<Movie[]>([]);
@@ -11,6 +12,11 @@
 
   let currentTheaterIndex = $state(0);
   let currentTheater = $derived(allTheaters[currentTheaterIndex] ?? null);
+
+  let favoriteTheaterID = $state<string>("");
+  let theaterIsFavorite = $derived(
+    currentTheater?.id === favoriteTheaterID && favoriteTheaterID !== "",
+  );
 
   let currentMovieIndex = $state(0);
   let currentMovie = $derived(movies[currentMovieIndex] ?? null);
@@ -69,6 +75,50 @@
     }
   }
 
+  async function getFavoriteTheaterID() {
+    try {
+      favoriteTheaterID = (await Landmark.GetFavoriteTheaterID()) ?? "";
+    } catch (err) {
+      error = String(error);
+      console.error("Failed to get favorite theater id: ", error);
+    }
+  }
+
+  async function writeFavorieTheaterID(id: string) {
+    try {
+      await Landmark.WriteFavoriteTheaterID(id);
+      favoriteTheaterID = id;
+    } catch (err) {
+      error = String(error);
+      console.error("Failed to write favorite theater id: ", error);
+    } finally {
+      theaterIsFavorite = true;
+    }
+  }
+
+  async function deleteFavoriteTheaterID() {
+    try {
+      await Landmark.RemoveFavoriteTheaterID();
+      favoriteTheaterID == "";
+    } catch (error) {
+      error = String(error);
+      console.error("Failed to write favorite theater id: ", error);
+    } finally {
+      theaterIsFavorite = true;
+      favoriteTheaterID = "";
+    }
+  }
+
+  function starTheater(id: string) {
+    // already favorited
+    if (id === favoriteTheaterID) {
+      // remove favorite
+      void deleteFavoriteTheaterID();
+    } else {
+      void writeFavorieTheaterID(id);
+    }
+  }
+
   function bookingEventStart() {
     Events.Emit("bookingEventStart", timerCount);
   }
@@ -115,7 +165,19 @@
 
   onMount(() => {
     void (async () => {
+      await getFavoriteTheaterID();
       await getTheaters();
+
+      if (favoriteTheaterID !== "") {
+        const index = allTheaters.findIndex(
+          (theater) => theater.id === favoriteTheaterID,
+        );
+
+        if (index !== -1) {
+          currentTheaterIndex = index;
+        }
+      }
+
       void getMovies();
 
       console.info("All Theaters:", allTheaters);
@@ -207,9 +269,23 @@
         </div>
         <img class="landmark-logo" src="/landmark.png" alt="landmark logo" />
         <div class="landmark-location">
-          <button class="theater-toggle" onclick={toggleTheaters}
-            >{currentTheater.name}</button
-          >
+          <div class="theater-info">
+            <button class="theater-toggle" onclick={toggleTheaters}
+              >{currentTheater.name}</button
+            >
+            <button
+              class="favorite-theater"
+              onclick={() => {
+                starTheater(currentTheater.id);
+              }}
+            >
+              {#if theaterIsFavorite}
+                <Star color="#f9f06b" fill="#f9f06b" />
+              {:else}
+                <Star color="#ffffff" />
+              {/if}
+            </button>
+          </div>
           {#if showTheaters}
             <ul class="theater-list">
               {#each allTheaters as theater, index}
@@ -218,7 +294,6 @@
                     class="select-theater"
                     onclick={() => {
                       currentTheaterIndex = index;
-                      currentTheater = theater;
                       showTheaters = false;
                       void getMovies();
                     }}>{theater.name}</button
@@ -575,6 +650,18 @@
       40vw
     ); /* not sure how this will look on rpi screen */
     z-index: 10;
+  }
+
+  .theater-info {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+  }
+
+  .favorite-theater {
+    background: transparent;
+    box-shadow: none;
+    border: none;
   }
 
   .theater-toggle {

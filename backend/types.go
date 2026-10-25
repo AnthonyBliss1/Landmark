@@ -51,6 +51,10 @@ type TheaterQParam struct {
 	Timezone string `json:"timeZone"`
 }
 
+type FavoriteTheaterID struct {
+	ID string `json:"id"`
+}
+
 type Movie struct {
 	ID          string
 	Title       string
@@ -253,6 +257,19 @@ func GetTheaters() ([]Theater, error) {
 
 func (l *Landmark) GetTheaters() []Theater {
 	return l.Theaters
+}
+
+func (l *Landmark) GetFavoriteTheaterID() (string, error) {
+	id, err := RetrieveFavoriteTheaterID()
+	return id, err
+}
+
+func (l *Landmark) WriteFavoriteTheaterID(id string) error {
+	return StoreFavoriteTheaterID(id)
+}
+
+func (l *Landmark) RemoveFavoriteTheaterID() error {
+	return DeleteFavoriteTheaterID()
 }
 
 func (l *Landmark) GetSchedule(currentTheater Theater) (ScheduleResponse, error) {
