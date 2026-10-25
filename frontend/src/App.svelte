@@ -119,6 +119,16 @@
     }
   }
 
+  function selectTheater(index: number) {
+    if (currentTheaterIndex !== index) {
+      currentTheaterIndex = index;
+      showTheaters = false;
+      void getMovies();
+    } else {
+      showTheaters = false;
+    }
+  }
+
   function bookingEventStart() {
     Events.Emit("bookingEventStart", timerCount);
   }
@@ -292,12 +302,16 @@
                 <li>
                   <button
                     class="select-theater"
+                    class:favorite={theater.id === favoriteTheaterID}
                     onclick={() => {
-                      currentTheaterIndex = index;
-                      showTheaters = false;
-                      void getMovies();
-                    }}>{theater.name}</button
+                      void selectTheater(index);
+                    }}
                   >
+                    {#if theater.id === favoriteTheaterID}
+                      <Star color="#f9f06b" fill="#f9f06b" size={15} />
+                    {/if}
+                    {theater.name}
+                  </button>
                 </li>
               {/each}
             </ul>
@@ -691,7 +705,7 @@
     z-index: 20;
   }
 
-  .theater-list li button {
+  .select-theater {
     display: block;
     width: 100%;
     padding: 10px 15px;
@@ -705,8 +719,12 @@
     cursor: pointer;
   }
 
-  .theater-list li button:hover {
+  .select-theater:hover {
     background: #333;
+  }
+
+  .select-theater.favorite {
+    color: #f9f06b;
   }
 
   .content {
@@ -824,14 +842,14 @@
     max-width: 25vw;
   }
 
-  /* if the showtimes are longer than 4 lines theres no clean handling*/
+  /* if the showtimes are longer than 3 lines theres no clean handling*/
   .showtimes {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-auto-rows: minmax(40px, auto);
     gap: 10px;
     margin: 0px 10px 0;
-    min-height: 190px; /* equivalent to 4 rows - 50px each row but one at 40px */
+    min-height: 140px; /* equivalent to 3 rows - 50px each row but one at 40px */
     align-content: start;
   }
 
