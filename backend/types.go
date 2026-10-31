@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -21,7 +22,7 @@ const (
 
 	// %s represents the string date in format - 2026-10-18
 	pageDateURL  = "https://cms-assets.webediamovies.pro/prod/landmarktheatres/%s/public/page-data/index/page-data.json"
-	theaterIndex = 5
+	theaterIndex = 4
 
 	theaterURL = "https://cms-assets.webediamovies.pro/prod/landmarktheatres/%s/public/page-data/sq/d/%s.json"
 
@@ -77,6 +78,7 @@ func InitLandmark() *Landmark {
 	// movies will be fetched from the frontend since it needs to happen more often
 	theaters, err := GetTheaters()
 	if err != nil {
+		slog.Error("failed to get theaters on initLandmark: ", err)
 		theaters = []Theater{{ID: defaultTheaterId, Name: defaultTheaterName, Timezone: defaultTheaterTimezone}}
 	}
 
