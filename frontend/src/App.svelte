@@ -58,7 +58,16 @@
 
     try {
       movies = (await Landmark.GetMovies(currentTheater)) ?? [];
+
+      // wait for the first poster to load to prevent layout shifts once loading is set to false
+      if (movies.length && movies[0].Poster) {
+        let poster = new Image();
+        poster.src = movies[0].Poster;
+
+        await poster.decode();
+      }
     } catch (err) {
+      // error could be a failure from GetMovies or the poster decode
       error = String(error);
       console.error("Failed to collect Movies:  ", err);
     } finally {
@@ -472,6 +481,8 @@
     border: none;
     box-shadow: none;
     z-index: 5;
+
+    cursor: default;
   }
 
   .last-updated {
@@ -835,7 +846,9 @@
 
     /* need to standardize to avoid inconsistent pages */
     max-height: 65vh;
+    aspect-ratio: 2 / 3;
     max-width: 25vw;
+    object-fit: contain;
   }
 
   /* if the showtimes are longer than 3 lines theres no clean handling*/
