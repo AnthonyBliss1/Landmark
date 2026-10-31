@@ -719,10 +719,6 @@
     cursor: pointer;
   }
 
-  .select-theater:hover {
-    background: #333;
-  }
-
   .select-theater.favorite {
     color: #f9f06b;
   }
