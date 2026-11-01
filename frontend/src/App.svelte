@@ -3,7 +3,7 @@
   import { Events } from "@wailsio/runtime";
   import { Landmark } from "../bindings/changeme/backend";
   import type { Movie, Theater } from "../bindings/changeme/backend";
-  import Star from "@lucide/svelte/icons/star";
+  import { Star, TriangleAlert } from "@lucide/svelte";
 
   let allTheaters = $state<Theater[]>([]);
   let movies = $state<Movie[]>([]);
@@ -32,6 +32,8 @@
   let showTheaters = $state(false);
   let trailerOverlay = $state(false);
   let descExpanded = $state(false);
+  let isThereError = $state(false);
+  let showErrorDetails = $state(false);
   let error = $state("");
 
   let validShowtimes = $derived(
@@ -52,7 +54,6 @@
     descExpanded = false;
     currentMovieIndex = 0;
     bookingURL = "";
-    error = "";
 
     lastUpdated = new Date().toLocaleString("en-US");
 
@@ -68,8 +69,9 @@
       }
     } catch (err) {
       // error could be a failure from GetMovies or the poster decode
-      error = String(error);
-      console.error("Failed to collect Movies:  ", err);
+      error = `Failed to collect Movies: ${String(err)}`;
+      console.error(error);
+      showError();
     } finally {
       loading = false;
     }
@@ -79,8 +81,9 @@
     try {
       allTheaters = (await Landmark.GetTheaters()) ?? [];
     } catch (err) {
-      error = String(error);
-      console.error("Failed to get Theaters: ", error);
+      error = `Failed to get Theaters: ${String(err)}`;
+      console.error(error);
+      showError();
     }
   }
 
@@ -88,8 +91,9 @@
     try {
       favoriteTheaterID = (await Landmark.GetFavoriteTheaterID()) ?? "";
     } catch (err) {
-      error = String(error);
-      console.error("Failed to get favorite theater id: ", error);
+      error = `Failed to get favorite theater id: ${String(err)}`;
+      console.error(error);
+      showError();
     }
   }
 
@@ -98,8 +102,9 @@
       await Landmark.WriteFavoriteTheaterID(id);
       favoriteTheaterID = id;
     } catch (err) {
-      error = String(error);
-      console.error("Failed to write favorite theater id: ", error);
+      error = `Failed to write favorite theater id: ${String(err)}`;
+      console.error(error);
+      showError();
     } finally {
       theaterIsFavorite = true;
     }
@@ -109,9 +114,10 @@
     try {
       await Landmark.RemoveFavoriteTheaterID();
       favoriteTheaterID == "";
-    } catch (error) {
-      error = String(error);
-      console.error("Failed to write favorite theater id: ", error);
+    } catch (err) {
+      error = `Failed to write favorite theater id: ${String(err)}`;
+      console.error(error);
+      showError();
     } finally {
       theaterIsFavorite = true;
       favoriteTheaterID = "";
@@ -160,6 +166,10 @@
     } else {
       currentMovieIndex++;
     }
+  }
+
+  function showError() {
+    isThereError = true;
   }
 
   function toggleDescription() {
@@ -282,9 +292,34 @@
       {/if}
 
       <div class="header">
-        <div class="app-title">
+        <div class="app-status">
           <span>Showtimes as of</span>
           <span class="last-updated">{lastUpdated}</span>
+
+          {#if isThereError}
+            <div class="error-container">
+              <button
+                class="live-error"
+                onclick={() => {
+                  showErrorDetails = !showErrorDetails;
+                }}
+              >
+                <TriangleAlert color="#ed333b" />
+              </button>
+
+              {#if showErrorDetails}
+                <button
+                  class="error-overlay"
+                  aria-label="close error details"
+                  onclick={() => {
+                    showErrorDetails = false;
+                  }}
+                ></button>
+
+                <span class="error-details">{error}</span>
+              {/if}
+            </div>
+          {/if}
         </div>
         <img class="landmark-logo" src="/landmark.png" alt="landmark logo" />
         <div class="landmark-location">
@@ -653,8 +688,69 @@
     height: 8vh;
   }
 
-  .app-title {
+  .app-status {
+    display: flex;
+    align-items: center;
     justify-self: start;
+    gap: 1rem;
+  }
+
+  .error-container {
+    position: relative;
+    display: inline-flex;
+    pointer-events: auto;
+    align-items: center;
+    z-index: 30;
+  }
+
+  .error-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    pointer-events: auto;
+    cursor: default;
+    z-index: 31;
+  }
+
+  .live-error {
+    display: inline-flex;
+    animation: slowblink 3s ease-in-out infinite;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    pointer-events: auto;
+    cursor: default;
+  }
+
+  .error-details {
+    position: absolute;
+    top: 2.3rem;
+    left: 0;
+    width: max-content;
+    max-width: 300px;
+    padding: 8px;
+    background: black;
+    border: 1px dotted white;
+    color: white;
+    font-size: 12px;
+    z-index: 32;
+    pointer-events: auto;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  @keyframes slowblink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.2;
+    }
   }
 
   .landmark-logo {
