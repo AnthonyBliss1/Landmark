@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,7 +12,63 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
+
+type OXY_CREDS struct {
+	OXY_PASS string
+	OXY_HOST string
+	OXY_PORT string
+	OXY_USER string
+}
+
+// TODO: replace the .env with OnePassword
+func LoadOxyVars(envFS embed.FS) (OXY_CREDS, error) {
+	vars, err := envFS.Open(".env")
+	if err != nil {
+		return OXY_CREDS{}, fmt.Errorf("failed to open env file: ", err)
+	}
+	defer vars.Close()
+
+	env, err := godotenv.Parse(vars)
+	if err != nil {
+		return OXY_CREDS{}, fmt.Errorf("failed to parse env vars: ", err)
+	}
+
+	var creds OXY_CREDS
+
+	creds.OXY_PASS = env["OXYLABS_PASSWORD"]
+	creds.OXY_HOST = env["OXYLABS_PROXY_HOST"]
+	creds.OXY_PORT = env["OXYLABS_PROXY_PORT"]
+	creds.OXY_USER = env["OXYLABS_USERNAME"]
+
+	return creds, nil
+}
+
+func BuildProxyClient(envFS embed.FS) (*http.Client, error) {
+	creds, err := LoadOxyVars(envFS)
+	if err != nil {
+		return nil, err
+	}
+
+	// build the proxyURL using the env variables
+	proxyString := fmt.Sprintf("http://user-%s:%s@%s:%s", creds.OXY_USER, creds.OXY_PASS, creds.OXY_HOST, creds.OXY_PORT)
+	proxyURL, err := url.Parse(proxyString)
+	if err != nil {
+		return nil, fmt.Errorf("parsing proxy url: %v", err)
+	}
+
+	// create transport using the proxyURL
+	transport := &http.Transport{
+		Proxy: http.ProxyURL(proxyURL),
+	}
+
+	// wrap the proxy transport in the client
+	client := &http.Client{Transport: transport}
+
+	return client, nil
+}
 
 func StorePosterImage(u string, title string) (string, error) {
 	if u == "" {
@@ -44,7 +101,7 @@ func StorePosterImage(u string, title string) (string, error) {
 		return "", err
 	}
 
-	resp, err := client.Do(req)
+	resp, err := GLOBAL_CLIENT.Do(req)
 	if err != nil {
 		return "", err
 	}

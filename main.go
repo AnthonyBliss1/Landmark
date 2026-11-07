@@ -3,6 +3,8 @@ package main
 import (
 	"embed"
 	"log"
+	"log/slog"
+	"net/http"
 	"time"
 
 	"changeme/backend"
@@ -19,12 +21,26 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+//go:embed .env
+var embeddedEnv embed.FS
+
 func init() {
 	// Register a custom event whose associated data type is string.
 	// This is not required, but the binding generator will pick up registered events
 	// and provide a strongly typed JS/TS API for them.
 	application.RegisterEvent[bool]("refresh")
 	application.RegisterEvent[int]("bookingEventStart")
+
+	var err error
+
+	backend.GLOBAL_CLIENT, err = backend.BuildProxyClient(embeddedEnv)
+	if err != nil {
+		// fall back to normal client, slog the error
+		slog.Error("failed to build proxy client, falling back to regular client: ", err)
+		backend.GLOBAL_CLIENT = &http.Client{}
+	} else {
+		slog.Info("sucessfully built proxy client")
+	}
 }
 
 // main function serves as the application's entry point. It initializes the application, creates a window,

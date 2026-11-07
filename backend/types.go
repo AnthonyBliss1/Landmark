@@ -32,8 +32,8 @@ const (
 )
 
 var (
-	PosterDir string
-	client    = &http.Client{}
+	PosterDir     string
+	GLOBAL_CLIENT *http.Client
 )
 
 type Landmark struct {
@@ -169,7 +169,7 @@ func GetPageData() (PageDataResponse, error) {
 		return PageDataResponse{}, fmt.Errorf("failed to create page data request: %q", err)
 	}
 
-	resp, err := client.Do(req)
+	resp, err := GLOBAL_CLIENT.Do(req)
 	if err != nil {
 		return PageDataResponse{}, fmt.Errorf("failed to make page data request: %q", err)
 	}
@@ -220,7 +220,7 @@ func GetTheaters() ([]Theater, error) {
 		return nil, fmt.Errorf("failed to create theater data request: %q", err)
 	}
 
-	resp, err := client.Do(req)
+	resp, err := GLOBAL_CLIENT.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make theater data request: %q", err)
 	}
@@ -308,7 +308,7 @@ func (l *Landmark) GetSchedule(currentTheater Theater) (ScheduleResponse, error)
 	req.Header.Add("referer", referer)
 	req.Header.Add("host", host)
 
-	resp, err := client.Do(req)
+	resp, err := GLOBAL_CLIENT.Do(req)
 	if err != nil {
 		return ScheduleResponse{}, fmt.Errorf("failed to make schedules req: %q", err)
 	}
@@ -364,7 +364,7 @@ func (l *Landmark) GetMovies(currentTheater Theater) ([]Movie, error) {
 	req.Header.Add("referer", referer)
 	req.Header.Add("host", host)
 
-	resp, err := client.Do(req)
+	resp, err := GLOBAL_CLIENT.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make movies req: %q", err)
 	}
