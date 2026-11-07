@@ -93,7 +93,7 @@
     } catch (err) {
       error = `Failed to get favorite theater id: ${String(err)}`;
       console.error(error);
-      showError();
+      // showError(); not going to show error here, its not impactful
     }
   }
 

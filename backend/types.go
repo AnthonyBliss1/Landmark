@@ -77,7 +77,7 @@ func InitLandmark() *Landmark {
 	// fetch theaters and initialize the Landmark struct
 	// movies will be fetched from the frontend since it needs to happen more often
 	theaters, err := GetTheaters()
-	if err != nil {
+	if err != nil { // theaters would be nil here
 		slog.Error("failed to get theaters on initLandmark: ", err)
 		theaters = []Theater{{ID: defaultTheaterId, Name: defaultTheaterName, Timezone: defaultTheaterTimezone}}
 	}
@@ -262,8 +262,7 @@ func (l *Landmark) GetTheaters() []Theater {
 }
 
 func (l *Landmark) GetFavoriteTheaterID() (string, error) {
-	id, err := RetrieveFavoriteTheaterID()
-	return id, err
+	return RetrieveFavoriteTheaterID()
 }
 
 func (l *Landmark) WriteFavoriteTheaterID(id string) error {
