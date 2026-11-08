@@ -91,7 +91,7 @@ func StorePosterImage(u string, title string) (string, error) {
 		return "", fmt.Errorf("non-valid image type for poster [%s]", imgExt)
 	}
 
-	cleanTitle := strings.ReplaceAll(title, " ", "_")
+	cleanTitle := strings.NewReplacer(" ", "_", "/", "-", "\\", "-", ":", "-").Replace(title)
 	fileName := cleanTitle + imgExt
 
 	imgPath := filepath.Join(PosterDir, fileName)

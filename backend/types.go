@@ -426,11 +426,11 @@ func (l *Landmark) StoreRawMovies(mr MovieResponse) error {
 		// store poster image in tmp dir
 		movie.PosterPath, err = StorePosterImage(m.PosterURL, m.Title)
 		if err != nil {
-			return fmt.Errorf("failed to store poster url for %s: %q", m.Title, err)
+			err = fmt.Errorf("failed to store poster url for %s: %q", m.Title, err) // we should still display the movie if we cant collect the poster
+		} else {
+			// frontend request path
+			movie.Poster = "/posters/" + filepath.Base(movie.PosterPath)
 		}
-
-		// frontend request path
-		movie.Poster = "/posters/" + filepath.Base(movie.PosterPath)
 
 		// add movie to temp array
 		movies = append(movies, movie)
@@ -439,5 +439,5 @@ func (l *Landmark) StoreRawMovies(mr MovieResponse) error {
 	// set fresh movies
 	l.Movies = movies
 
-	return nil
+	return err // want the frontend to be aware of the non-fatal error
 }
