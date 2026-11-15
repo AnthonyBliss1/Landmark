@@ -21,7 +21,7 @@ const (
 	host        = "www.landmarktheatres.com"
 
 	// %s represents the string date in format - 2026-10-18
-	pageDateURL  = "https://cms-assets.webediamovies.pro/prod/landmarktheatres/%s/public/page-data/index/page-data.json"
+	pageDateURL  = "https://cms-assets.webediamovies.pro/prod/landmarktheatres/%s/public/page-data/now-playing/page-data.json"
 	theaterIndex = 4
 
 	theaterURL = "https://cms-assets.webediamovies.pro/prod/landmarktheatres/%s/public/page-data/sq/d/%s.json"
@@ -78,7 +78,7 @@ func InitLandmark() *Landmark {
 	// movies will be fetched from the frontend since it needs to happen more often
 	theaters, err := GetTheaters()
 	if err != nil { // theaters would be nil here
-		slog.Error("failed to get theaters on initLandmark: ", err)
+		slog.Error("failed to get theaters on initLandmark", "error", err)
 		theaters = []Theater{{ID: defaultTheaterId, Name: defaultTheaterName, Timezone: defaultTheaterTimezone}}
 	}
 
@@ -164,6 +164,8 @@ func GetPageData() (PageDataResponse, error) {
 	today := time.Now().Format("2006-01-02")
 	pageDataURL := fmt.Sprintf(pageDateURL, today)
 
+	slog.Info("Page Data URL Built", "URL", pageDataURL)
+
 	req, err := http.NewRequest(http.MethodGet, pageDataURL, nil)
 	if err != nil {
 		return PageDataResponse{}, fmt.Errorf("failed to create page data request: %q", err)
@@ -176,7 +178,7 @@ func GetPageData() (PageDataResponse, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return PageDataResponse{}, errors.New("non 200 status code for page data response")
+		return PageDataResponse{}, fmt.Errorf("non 200 status code for page data response - Code: %d | Status: %s", resp.StatusCode, resp.Status)
 	}
 
 	bodyBytes, err := io.ReadAll(resp.Body)
@@ -227,7 +229,7 @@ func GetTheaters() ([]Theater, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("non 200 status code for theater data response")
+		return nil, fmt.Errorf("non 200 status code for theater data response - Code: %d | Status: %s", resp.StatusCode, resp.Status)
 	}
 
 	bodyBytes, err := io.ReadAll(resp.Body)
