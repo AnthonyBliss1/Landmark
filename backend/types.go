@@ -68,8 +68,6 @@ type Movie struct {
 }
 
 func InitLandmark() *Landmark {
-	// TODO: setup proxy client just in case
-
 	// fetch theaters and initialize the Landmark struct
 	// movies will be fetched from the frontend since it needs to happen more often
 	theaters, err := GetTheaters()

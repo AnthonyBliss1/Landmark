@@ -19,6 +19,12 @@ Install latest Wails3 version
 go install github.com/wailsapp/wails/v3/cmd/wails3@latest
 ```
 
+Copy .env.template
+
+```bash
+cp .env.template .env
+```
+
 Package the executable
 
 ```bash

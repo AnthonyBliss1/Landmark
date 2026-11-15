@@ -16,24 +16,6 @@ export interface Movie {
     "Showtimes": Showtime[] | null;
 }
 
-export type MovieResponse = RawMovie[] | null;
-
-export interface RawMovie {
-    "id": string;
-    "title": string;
-    "synopsis": string;
-    "casting": string[] | null;
-    "direction": string[] | null;
-    "runtime": number;
-    "genres": string;
-    "poster": string;
-    "certificate": string;
-    "trailer": Trailer;
-    "showtimes": Showtime[] | null;
-}
-
-export type ScheduleResponse = { [_ in string]?: TheaterSchedule } | null;
-
 export interface Showtime {
     "id": string;
     "startsAt": string;
@@ -49,12 +31,6 @@ export interface Theater {
     "id": string;
     "name": string;
     "timeZone": string;
-}
-
-export interface TheaterSchedule {
-    "schedule": { [_ in string]?: { [_ in string]?: Showtime[] | null } | null } | null;
-    "moviesTags": { [_ in string]?: string[] | null } | null;
-    "showtimesDates": string[] | null;
 }
 
 export interface Ticketing {

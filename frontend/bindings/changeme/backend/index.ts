@@ -8,13 +8,9 @@ export {
 
 export type {
     Movie,
-    MovieResponse,
-    RawMovie,
-    ScheduleResponse,
     Showtime,
     ShowtimeData,
     Theater,
-    TheaterSchedule,
     Ticketing,
     Trailer
 } from "./models.js";

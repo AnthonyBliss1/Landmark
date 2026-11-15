@@ -36,7 +36,7 @@ func init() {
 	backend.GLOBAL_CLIENT, err = backend.BuildProxyClient(embeddedEnv)
 	if err != nil {
 		// fall back to normal client, slog the error
-		slog.Error("failed to build proxy client, falling back to regular client: ", err)
+		slog.Error("failed to build proxy client, falling back to regular client", "error", err)
 		backend.GLOBAL_CLIENT = &http.Client{}
 	} else {
 		slog.Info("sucessfully built proxy client")

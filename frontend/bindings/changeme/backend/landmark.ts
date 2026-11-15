@@ -17,20 +17,12 @@ export function GetMovies(currentTheater: $models.Theater): $CancellablePromise<
     return $Call.ByID(1882299569, currentTheater);
 }
 
-export function GetSchedule(currentTheater: $models.Theater): $CancellablePromise<$models.ScheduleResponse> {
-    return $Call.ByID(2075016289, currentTheater);
-}
-
 export function GetTheaters(): $CancellablePromise<$models.Theater[] | null> {
     return $Call.ByID(3872358394);
 }
 
 export function RemoveFavoriteTheaterID(): $CancellablePromise<void> {
     return $Call.ByID(2703066656);
-}
-
-export function StoreRawMovies(mr: $models.MovieResponse): $CancellablePromise<void> {
-    return $Call.ByID(3477726108, mr);
 }
 
 export function String(): $CancellablePromise<string> {

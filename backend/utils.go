@@ -38,12 +38,30 @@ func LoadOxyVars(envFS embed.FS) (OXY_CREDS, error) {
 		return OXY_CREDS{}, fmt.Errorf("failed to parse env vars: ", err)
 	}
 
-	var creds OXY_CREDS
+	var (
+		creds OXY_CREDS
+		ok    bool
+	)
 
-	creds.OXY_PASS = env["OXYLABS_PASSWORD"]
-	creds.OXY_HOST = env["OXYLABS_PROXY_HOST"]
-	creds.OXY_PORT = env["OXYLABS_PROXY_PORT"]
-	creds.OXY_USER = env["OXYLABS_USERNAME"]
+	creds.OXY_PASS, ok = env["OXYLABS_PASSWORD"]
+	if !ok || creds.OXY_PASS == "" {
+		return OXY_CREDS{}, errors.New("oxy labs password is empty or not found")
+	}
+
+	creds.OXY_HOST, ok = env["OXYLABS_PROXY_HOST"]
+	if !ok || creds.OXY_HOST == "" {
+		return OXY_CREDS{}, errors.New("oxy labs host is empty or not found")
+	}
+
+	creds.OXY_PORT, ok = env["OXYLABS_PROXY_PORT"]
+	if !ok || creds.OXY_PORT == "" {
+		return OXY_CREDS{}, errors.New("oxy labs port is empty or not found")
+	}
+
+	creds.OXY_USER, ok = env["OXYLABS_USERNAME"]
+	if !ok || creds.OXY_USER == "" {
+		return OXY_CREDS{}, errors.New("oxy labs user is empty or not found")
+	}
 
 	return creds, nil
 }
