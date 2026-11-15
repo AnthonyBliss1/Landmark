@@ -113,7 +113,6 @@
   async function deleteFavoriteTheaterID() {
     try {
       await Landmark.RemoveFavoriteTheaterID();
-      favoriteTheaterID == "";
     } catch (err) {
       error = `Failed to write favorite theater id: ${String(err)}`;
       console.error(error);
@@ -246,8 +245,8 @@
             autoplay
             onloadstart={videoStartLoading}
             onwaiting={videoStartLoading}
-            onplaying={videoStopLoading}
-          ></video>
+            onplaying={videoStopLoading}><track kind="captions" /></video
+          >
         </div>
       </div>
     {:else if bookingURL !== ""}
@@ -385,12 +384,12 @@
               <dt>Runtime</dt>
               <dd>{currentMovie.Runtime}</dd>
               <dt>Description</dt>
-              <dd
-                class="description"
-                class:expanded={descExpanded}
-                onclick={toggleDescription}
-              >
-                {currentMovie.Description}
+              <dd>
+                <button class="description" onclick={toggleDescription}>
+                  <span class:expanded={descExpanded}>
+                    {currentMovie.Description}
+                  </span>
+                </button>
               </dd>
             </dl>
             <div class="showtimes">
@@ -908,25 +907,33 @@
     font-size: clamp(10px, 1.8vw, 18px);
   }
 
-  .movie-details dd {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 5;
-    line-clamp: 5;
-    overflow: hidden;
-  }
-
-  .movie-details dd.description {
-    line-height: 1.4;
-    min-height: calc(5 * 1.4em);
-    max-height: calc(10 * 1.4em);
-    overflow: hidden;
+  .description {
+    display: block;
+    width: 100%;
+    padding: 0;
+    background-color: inherit;
+    box-shadow: none;
+    border: none;
+    text-align: inherit;
+    font-size: inherit;
 
     pointer-events: auto;
     cursor: pointer;
   }
 
-  .movie-details dd.expanded {
+  .description span {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
+
+    line-height: 1.4;
+    min-height: calc(5 * 1.4em);
+    max-height: calc(10 * 1.4em);
+    overflow: hidden;
+  }
+
+  .description span.expanded {
     -webkit-line-clamp: unset;
     line-clamp: unset;
   }
